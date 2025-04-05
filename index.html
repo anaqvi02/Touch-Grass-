@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Push-Up Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS Variables and Base Styles --- */
+        :root {
+            --bg-dark: #1a1a1a;
+            --card-bg: #2c2c2c;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --heading-color: #ffffff;
+            --accent-blue: #3498db;
+            --accent-blue-light: #5dade2;
+            --border-color: #444444;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --bonus-color: #2ecc71;
+            --error-color: #e74c3c;
+            --nav-height: 60px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-top: var(--nav-height);
+        }
+        a { color: var(--accent-blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* --- Navbar Styles --- */
+        .navbar {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            display: flex; justify-content: center; align-items: center;
+            padding: 0 20px; box-shadow: 0 2px 10px var(--shadow-color); z-index: 1000;
+        }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-button {
+            display: inline-block; padding: 10px 20px; background-color: var(--accent-blue);
+            color: var(--heading-color); text-decoration: none; border-radius: 5px;
+            font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s ease, transform 0.1s ease;
+            border: none; cursor: pointer;
+        }
+        .nav-button:hover { background-color: var(--accent-blue-light); transform: translateY(-2px); }
+        .nav-button.active {
+            background-color: var(--accent-blue-light); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); font-weight: 600;
+        }
+
+        /* --- Page Container and Content Sections --- */
+        .page-container {
+            padding: 40px 20px; max-width: 900px; margin: 0 auto;
+        }
+        .page-content {
+            display: none; /* Hide all pages by default */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page-content.active {
+            display: block; /* Show only the active page */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1, h2 { color: var(--heading-color); margin-bottom: 15px; text-align: center; }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.6rem; color: var(--accent-blue-light); }
+        p { margin-bottom: 15px; }
+
+        /* --- Leaderboard Styles --- */
+        .leaderboard-container { background-color: var(--card-bg); border-radius: 12px; padding: 25px 35px; width: 100%; box-shadow: 0 8px 25px var(--shadow-color); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px; }
+        .leaderboard-entry { background-color: #333333; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 20px; border: 1px solid var(--border-color); transition: background-color 0.2s ease, transform 0.2s ease; position: relative; overflow: hidden; }
+        .leaderboard-entry:hover { background-color: #3f3f3f; transform: translateY(-2px); }
+        .entry-rank { font-size: 1.4rem; font-weight: 700; color: var(--accent-blue-light); min-width: 30px; text-align: center; }
+        .leaderboard-entry.rank-1 .entry-rank::before { content: '🥇 '; color: var(--gold); }
+        .leaderboard-entry.rank-2 .entry-rank::before { content: '🥈 '; color: var(--silver); }
+        .leaderboard-entry.rank-3 .entry-rank::before { content: '🥉 '; color: var(--bronze); }
+        .leaderboard-entry.rank-1 .entry-rank, .leaderboard-entry.rank-2 .entry-rank, .leaderboard-entry.rank-3 .entry-rank { font-size: 1.8rem; line-height: 1; }
+        .entry-image img, .entry-image .placeholder { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
+        .entry-image .placeholder { display: flex; align-items: center; justify-content: center; background-color: #4f4f4f; color: var(--text-secondary); font-size: 0.75rem; text-align: center; line-height: 1.2; border: 2px dashed var(--border-color); }
+        .entry-details { flex-grow: 1; display: flex; flex-direction: column; }
+        .entry-details .name { font-size: 1.15rem; font-weight: 600; color: var(--heading-color); margin-bottom: 2px; }
+        .entry-details .score { font-size: 1rem; font-weight: 500; color: var(--accent-blue-light); margin-bottom: 4px; }
+        .entry-details .score .raw-count { font-size: 0.85em; color: var(--text-secondary); font-weight: 400; }
+        .entry-details .bonus-info { font-size: 0.85rem; font-style: italic; }
+        .entry-details .bonus-info.yes { color: var(--bonus-color); font-weight: 500; }
+        .entry-details .bonus-info.no { color: var(--text-secondary); }
+        .entry-details .bonus-info.error { color: var(--error-color); }
+        .entry-details .timestamp { font-size: 0.75rem; color: #888; margin-top: 5px; align-self: flex-end; }
+        .no-entries { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 1.1em; font-style: italic; border: 1px dashed var(--border-color); border-radius: 8px; margin-top: 20px; }
+
+        /* --- Main Page Styles --- */
+        .main-content { text-align: center; }
+        .main-content img { max-width: 80%; height: auto; border-radius: 10px; margin: 20px auto; display: block; box-shadow: 0 5px 15px var(--shadow-color); border: 3px solid var(--accent-blue); animation: pulse 5s infinite ease-in-out; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.03); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+
+        /* --- Outdoors Page Styles --- */
+        .outdoors-links ul { list-style: none; padding: 0; }
+        .outdoors-links li { background-color: var(--card-bg); margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 5px solid var(--accent-blue); transition: transform 0.2s ease; }
+        .outdoors-links li:hover { transform: translateX(5px); }
+        .outdoors-links a { font-weight: 600; font-size: 1.1rem;}
+        .outdoors-links p { margin-top: 5px; margin-bottom: 0; color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* --- Contest Page Styles --- */
+        .contest-info { text-align: center; background-color: var(--card-bg); padding: 30px; border-radius: 10px; border: 1px dashed var(--border-color); }
+        .contest-info p { font-size: 1.3rem; color: var(--accent-blue-light); font-weight: 600; margin: 0; }
+        .contest-info span { display: block; font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; }
+
+        /* --- Responsive adjustments --- */
+        @media (max-width: 600px) {
+             .navbar { justify-content: flex-start; padding: 0 10px; }
+             .nav-links { gap: 5px; width: 100%; overflow-x: auto; /* Allow scrolling if buttons overflow */ }
+             .nav-button { padding: 8px 10px; font-size: 0.8rem; flex-shrink: 0; /* Prevent buttons shrinking */ }
+             .page-container { padding: 20px 10px; }
+             h1 { font-size: 1.8rem; }
+             h2 { font-size: 1.4rem; }
+             .leaderboard-entry { padding: 10px 15px; gap: 15px; flex-direction: column; align-items: flex-start;}
+             .entry-image { align-self: center; margin-bottom: 10px;}
+             .entry-details { width: 100%; }
+             .entry-details .timestamp { align-self: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-links">
+            <!-- Use data-target to link buttons to page content IDs -->
+            <button class="nav-button active" data-target="#page-home">Home</button>
+            <button class="nav-button" data-target="#page-leaderboard">Leaderboard</button>
+            <button class="nav-button" data-target="#page-outdoors">Get Outside</button>
+            <button class="nav-button" data-target="#page-contest">Contest</button>
+        </div>
+    </nav>
+
+    <!-- Page Content Container -->
+    <div class="page-container">
+
+        <!-- Home Page Content (Initially Active) -->
+        <div id="page-home" class="page-content active">
+            <div class="main-content">
+                <h1>Welcome to the Push-Up Challenge!</h1>
+                <!-- Make sure static/images/workout_motivation.jpg exists -->
+                <img src="{{ url_for('static', filename='images/workout_motivation.jpg') }}" alt="Outdoor workout motivation">
+                <h2>Track Your Progress & Get Outdoors</h2>
+                <p>
+                    This app helps you track your push-up sessions and compete on the leaderboard.
+                    We believe in the benefits of exercising outdoors, so you get bonus points
+                    if our AI detects you're working out on grass!
+                </p>
+                <p>
+                    Use the navigation above to view the leaderboard, find helpful links for outdoor activities,
+                    or check on the upcoming monthly contest. Ready to improve?
+                </p>
+            </div>
+        </div>
+
+        <!-- Leaderboard Page Content -->
+        <div id="page-leaderboard" class="page-content">
+            <div class="leaderboard-container">
+                <h1>🏆 Push-Up Leaderboard 🏆</h1>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 25px;">Top scores submitted - outdoor workouts get a 2x bonus!</p>
+
+                {% if leaderboard %}
+                    <ul class="leaderboard-list">
+                        {% for entry in leaderboard %}
+                            <li class="leaderboard-entry {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                                <div class="entry-rank">{{ loop.index }}</div>
+                                <div class="entry-image">
+                                    {% if entry.image_filename %}
+                                        <img src="{{ url_for('static', filename='uploads/' + entry.image_filename) }}" alt="Workout image for {{ entry.name }}">
+                                    {% else %}
+                                        <div class="placeholder">No Image</div>
+                                    {% endif %}
+                                </div>
+                                <div class="entry-details">
+                                    <div class="name">{{ entry.username | default('Anonymous User', true) }}</div>
+                                    <div class="score">
+                                        {{ entry.score }} Points
+                                        <span class="raw-count">({{ entry.raw_count }} reps)</span>
+                                    </div>
+                                    <div class="bonus-info {% if entry.bonus %}yes{% elif entry.grass_analysis == 'No Image' or 'Error' in entry.grass_analysis %}error{% else %}no{% endif %}">
+                                        {% if entry.bonus %} ✔ Outdoor Bonus Applied (Grass: {{ entry.grass_analysis }})
+                                        {% elif entry.grass_analysis == 'No Image' %} ✖ No Image Submitted
+                                        {% elif 'Error' in entry.grass_analysis or 'Failed' in entry.grass_analysis or 'Unavailable' in entry.grass_analysis %} ✖ Image Analysis Issue ({{ entry.grass_analysis }})
+                                        {% else %} ✖ No Outdoor Bonus (Grass: {{ entry.grass_analysis }}) {% endif %}
+                                    </div>
+                                    <div class="timestamp">{{ entry.timestamp }}</div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="no-entries">The leaderboard is empty. Be the first to submit your score!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Outdoors Page Content -->
+        <div id="page-outdoors" class="page-content">
+             <div class="outdoors-links">
+                <h1>Find Ways to Get Outside!</h1>
+                <p>Exercising outdoors has great benefits. Here are some resources to help you find places and activities:</p>
+                <ul>
+                    <li><a href="https://www.alltrails.com/" target="_blank" rel="noopener noreferrer">AllTrails</a><p>Find hiking, biking, and running trails near you.</p></li>
+                    <li><a href="https://www.nps.gov/findapark/index.htm" target="_blank" rel="noopener noreferrer">National Park Service - Find a Park</a><p>Explore national parks across the country.</p></li>
+                    <li><a href="https://www.meetup.com/topics/outdoor-adventure/" target="_blank" rel="noopener noreferrer">Meetup - Outdoor Adventures</a><p>Find local groups for hiking, kayaking, climbing, and more.</p></li>
+                    <li><a href="https://www.californiastateparks.reservecalifornia.com/" target="_blank" rel="noopener noreferrer">ReserveCalifornia (Example State Parks)</a><p>Find/reserve spots in CA state parks (replace with local system).</p></li>
+                    <li><a href="https://map.google.com" target="_blank" rel="noopener noreferrer">Google Maps</a><p>Search for "parks near me", "public fields", or "running tracks".</p></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Contest Page Content -->
+        <div id="page-contest" class="page-content">
+            <div class="contest-info">
+                <h1>Monthly Push-Up Contest</h1>
+                <p>Coming Soon!</p>
+                <span>Next contest starts in: 28 days, 12 hours, and 14 seconds</span>
+                <p style="font-size: 1rem; color: var(--text-secondary); margin-top: 20px;">Check back later for more details on rules and prizes!</p>
+            </div>
+        </div>
+
+    </div> <!-- End Page Container -->
+
+    <!-- JavaScript for Navigation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const pageContents = document.querySelectorAll('.page-content');
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target; // Get target ID from data-target attribute (e.g., '#page-home')
+
+                    // Deactivate all buttons and pages
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    pageContents.forEach(page => page.classList.remove('active'));
+
+                    // Activate the clicked button and the target page
+                    button.classList.add('active');
+                    const targetPage = document.querySelector(targetId);
+                    if (targetPage) {
+                        targetPage.classList.add('active');
+                    } else {
+                        console.error('Target page not found:', targetId);
+                    }
+                });
+            });
+
+            // Ensure the initial active state is correct (Home page)
+            // The 'active' class is already set in HTML for the home button and page,
+            // so no extra JS needed here unless you want to dynamically set the initial page.
+        });
+    </script>
+
+</body>
+</html>
