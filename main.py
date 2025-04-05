@@ -13,21 +13,17 @@ class ArduinoGUI:
         self.root = root
         self.root.title("Arduino Data & Image Sender")
 
-        # Serial communication setup
-        self.serial_port = '/dev/cu.usbmodem11101' # <<< CHANGE THIS if needed
+        self.serial_port = '/dev/cu.usbmodem11101' 
         self.baud_rate = 9600
         self.ser = None
         self.serial_queue = queue.Queue()
-        self.latest_data = None # Initialize as None to better check if data received
+        self.latest_data = None 
         self.connect_serial()
 
-        # Image handling
         self.image_path = None
 
-        # Create GUI elements
         self.create_widgets()
 
-        # Start serial thread
         self.running = True
         self.serial_thread = threading.Thread(target=self.read_serial, daemon=True)
         self.serial_thread.start()
