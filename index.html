@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Push-Up Tracker</title>
+    <title>Touch Grass ++ Push-Up Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- CSS Variables and Base Styles --- */
         :root {
             --bg-dark: #1a1a1a;
+            --bg-gradient-start: #2b3a4a;
+            --bg-gradient-mid: #1f2937;
+            --bg-gradient-end: #1a1a1a;
             --card-bg: #2c2c2c;
             --text-primary: #e0e0e0;
             --text-secondary: #a0a0a0;
@@ -20,71 +24,140 @@
             --gold: #FFD700;
             --silver: #C0C0C0;
             --bronze: #CD7F32;
-            --shadow-color: rgba(0, 0, 0, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.6);
             --bonus-color: #2ecc71;
             --error-color: #e74c3c;
-            --nav-height: 60px;
+            --nav-height: 65px;
+            --nav-indicator-color: var(--accent-blue-light);
+            --code-bg: #444; /* Background for code elements */
+            --code-color: #f1f1f1; /* Text color for code elements */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
+            background: linear-gradient(160deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+            background-size: 400% 400%;
+            animation: gradientBG 18s ease infinite;
             color: var(--text-primary);
             line-height: 1.6;
             padding-top: var(--nav-height);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        a { color: var(--accent-blue); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
+        a { color: var(--accent-blue); text-decoration: none; }
+        a:hover { text-decoration: none; color: var(--accent-blue-light); }
+
+        /* --- Navbar Styles - WITH LOGO & NAME --- */
         .navbar {
-            background-color: var(--card-bg);
+            background-color: rgba(30, 30, 30, 0.85);
             border-bottom: 1px solid var(--border-color);
             position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            display: flex; justify-content: center; align-items: center;
-            padding: 0 20px; box-shadow: 0 2px 10px var(--shadow-color); z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 25px; box-shadow: 0 3px 12px var(--shadow-color); z-index: 1000;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-button {
-            display: inline-block; padding: 10px 20px; background-color: var(--accent-blue);
-            color: var(--heading-color); text-decoration: none; border-radius: 5px;
-            font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s ease, transform 0.1s ease;
-            border: none; cursor: pointer;
+        .navbar-logo { display: flex; align-items: center; height: 100%; }
+        .navbar-logo img { height: 40px; width: auto; display: block; }
+        .nav-links { display: flex; gap: 25px; align-items: center; height: 100%; }
+        .nav-links button {
+            background: none; border: none; padding: 0; font: inherit;
+            cursor: pointer; outline: inherit; font-family: 'Poppins', sans-serif;
+            color: var(--text-secondary); font-size: 1rem; font-weight: 500; text-decoration: none;
+            position: relative; height: 100%; display: flex; align-items: center;
+            transition: color 0.3s ease; white-space: nowrap; /* Prevent wrapping */
         }
-        .nav-button:hover { background-color: var(--accent-blue-light); transform: translateY(-2px); }
-        .nav-button.active {
-            background-color: var(--accent-blue-light); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); font-weight: 600;
+        .nav-links button::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+            background-color: var(--nav-indicator-color); transform: scaleX(0);
+            transform-origin: bottom left; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .nav-links button:hover { color: var(--text-primary); }
+        .nav-links button.active { color: var(--heading-color); font-weight: 600; }
+        .nav-links button.active::after { transform: scaleX(1); }
+        .navbar-product-name {
+            font-family: 'Poppins', sans-serif; font-size: 1.1rem; font-weight: 600;
+            color: var(--heading-color); text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
 
         /* --- Page Container and Content Sections --- */
         .page-container {
             padding: 40px 20px; max-width: 900px; margin: 0 auto;
+            perspective: 1000px;
         }
         .page-content {
-            display: none; 
-            animation: fadeIn 0.5s ease-in-out;
+            display: none;
+            animation: contentFadeInPerspective 0.7s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
         }
-        .page-content.active {
-            display: block;
+        .page-content.active { display: block; }
+        @keyframes contentFadeInPerspective {
+            from { opacity: 0; transform: translateY(40px) rotateX(-10deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0deg); }
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideScaleInFromBottom {
+            from { opacity: 0; transform: translateY(35px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1.0); }
         }
-        h1, h2 { color: var(--heading-color); margin-bottom: 15px; text-align: center; }
-        h1 { font-size: 2rem; }
-        h2 { font-size: 1.6rem; color: var(--accent-blue-light); }
-        p { margin-bottom: 15px; }
 
-        .leaderboard-container { background-color: var(--card-bg); border-radius: 12px; padding: 25px 35px; width: 100%; box-shadow: 0 8px 25px var(--shadow-color); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px; }
-        .leaderboard-entry { background-color: #333333; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 20px; border: 1px solid var(--border-color); transition: background-color 0.2s ease, transform 0.2s ease; position: relative; overflow: hidden; }
-        .leaderboard-entry:hover { background-color: #3f3f3f; transform: translateY(-2px); }
+        /* --- Base heading/paragraph styles --- */
+        h1, h2, h3 { color: var(--heading-color); margin-bottom: 15px; margin-top: 25px; }
+        h1 { font-size: 2rem; text-align: center; margin-top: 0; /* First h1 no top margin */
+             animation: textFocusSmooth 1s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+        }
+        h2 { font-size: 1.6rem; color: var(--accent-blue-light); text-align: center; }
+        h3 { font-size: 1.3rem; color: var(--accent-blue); } /* Added h3 style */
+        p, li { margin-bottom: 15px; color: var(--text-primary); }
+        ul, ol { list-style-position: outside; padding-left: 25px; margin-bottom: 15px; }
+        hr { border: 0; height: 1px; background-color: var(--border-color); margin: 30px 0; }
+        strong { font-weight: 600; color: var(--heading-color); }
+        code {
+            background-color: var(--code-bg);
+            color: var(--code-color);
+            padding: 0.2em 0.4em;
+            margin: 0 0.1em;
+            font-size: 0.85em;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+
+        @keyframes textFocusSmooth {
+          0% { filter: blur(8px); opacity: 0; transform: scale(0.98); }
+          100% { filter: blur(0px); opacity: 1; transform: scale(1); }
+        }
+
+        /* --- Specific Page Styles --- */
+
+        /* Leaderboard */
+        .leaderboard-container {
+             background-color: rgba(44, 44, 44, 0.9); border-radius: 12px; padding: 25px 35px; width: 100%;
+             box-shadow: 0 10px 30px var(--shadow-color); border: 1px solid var(--border-color);
+             display: flex; flex-direction: column; animation: scaleUpSlightRotate 0.6s ease-out 0.1s forwards;
+             transform-origin: center center; transform: scale(0.95) rotateX(5deg); opacity: 0;
+        }
+        @keyframes scaleUpSlightRotate {
+            from { transform: scale(0.95) rotateX(5deg); opacity: 0; }
+            to { transform: scale(1) rotateX(0deg); opacity: 1; }
+        }
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 18px; }
+        .leaderboard-entry {
+            background-color: #333333; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center;
+            gap: 20px; border: 1px solid var(--border-color); transition: background-color 0.2s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative; overflow: hidden; opacity: 0; animation: slideScaleInFromBottom 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+        .leaderboard-entry:hover { background-color: #3f3f3f; transform: translateY(-5px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.7); border-color: var(--accent-blue-light); }
         .entry-rank { font-size: 1.4rem; font-weight: 700; color: var(--accent-blue-light); min-width: 30px; text-align: center; }
         .leaderboard-entry.rank-1 .entry-rank::before { content: '🥇 '; color: var(--gold); }
         .leaderboard-entry.rank-2 .entry-rank::before { content: '🥈 '; color: var(--silver); }
         .leaderboard-entry.rank-3 .entry-rank::before { content: '🥉 '; color: var(--bronze); }
         .leaderboard-entry.rank-1 .entry-rank, .leaderboard-entry.rank-2 .entry-rank, .leaderboard-entry.rank-3 .entry-rank { font-size: 1.8rem; line-height: 1; }
-        .entry-image img, .entry-image .placeholder { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
+        .entry-image img, .entry-image .placeholder { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); transition: transform 0.3s ease; }
+        .leaderboard-entry:hover .entry-image img { transform: scale(1.15) rotate(3deg); }
         .entry-image .placeholder { display: flex; align-items: center; justify-content: center; background-color: #4f4f4f; color: var(--text-secondary); font-size: 0.75rem; text-align: center; line-height: 1.2; border: 2px dashed var(--border-color); }
         .entry-details { flex-grow: 1; display: flex; flex-direction: column; }
         .entry-details .name { font-size: 1.15rem; font-weight: 600; color: var(--heading-color); margin-bottom: 2px; }
@@ -95,56 +168,140 @@
         .entry-details .bonus-info.no { color: var(--text-secondary); }
         .entry-details .bonus-info.error { color: var(--error-color); }
         .entry-details .timestamp { font-size: 0.75rem; color: #888; margin-top: 5px; align-self: flex-end; }
-        .no-entries { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 1.1em; font-style: italic; border: 1px dashed var(--border-color); border-radius: 8px; margin-top: 20px; }
+        .no-entries { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 1.1em; font-style: italic; border: 1px dashed var(--border-color); border-radius: 8px; margin-top: 20px; animation: contentFadeInPerspective 0.7s ease-out; }
 
-        /* --- Main Page Styles --- */
+        /* Main Page */
         .main-content { text-align: center; }
-        .main-content img { max-width: 80%; height: auto; border-radius: 10px; margin: 20px auto; display: block; box-shadow: 0 5px 15px var(--shadow-color); border: 3px solid var(--accent-blue); animation: pulse 5s infinite ease-in-out; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.03); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+        .main-content img {
+            max-width: 80%; height: auto; border-radius: 10px; margin: 20px auto; display: block;
+            box-shadow: 0 8px 25px var(--shadow-color); border: 3px solid var(--accent-blue);
+            animation: gentlePulseGrow 5s infinite ease-in-out;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.320, 1.275), box-shadow 0.3s ease;
+        }
+         .main-content img:hover { transform: scale(1.08); box-shadow: 0 12px 35px var(--shadow-color); }
+        @keyframes gentlePulseGrow {
+             0% { transform: scale(1); opacity: 0.9; }
+             50% { transform: scale(1.03); opacity: 1; }
+             100% { transform: scale(1); opacity: 0.9; }
+        }
 
-        /* --- Outdoors Page Styles --- */
-        .outdoors-links ul { list-style: none; padding: 0; }
-        .outdoors-links li { background-color: var(--card-bg); margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 5px solid var(--accent-blue); transition: transform 0.2s ease; }
-        .outdoors-links li:hover { transform: translateX(5px); }
+        /* Outdoors Page */
+        .outdoors-links {
+             animation: scaleUpSlightRotate 0.6s ease-out 0.1s forwards; transform-origin: center center;
+             transform: scale(0.95) rotateX(5deg); opacity: 0;
+        }
+        .outdoors-links ul { list-style: none; padding: 0; perspective: 800px; margin-bottom: 0;} /* Reset margin */
+        .outdoors-links li {
+            background-color: var(--card-bg); margin-bottom: 12px; padding: 18px 20px; border-radius: 8px;
+            border-left: 5px solid var(--accent-blue); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-left-color 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); opacity: 0; animation: slideScaleInFromBottom 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            transform-origin: left center;
+        }
+        .outdoors-links li:nth-child(1) { animation-delay: 0.1s; }
+        .outdoors-links li:nth-child(2) { animation-delay: 0.18s; }
+        .outdoors-links li:nth-child(3) { animation-delay: 0.26s; }
+        .outdoors-links li:nth-child(4) { animation-delay: 0.34s; }
+        .outdoors-links li:nth-child(5) { animation-delay: 0.42s; }
+        .outdoors-links li:hover { transform: translateX(10px) scale(1.03) rotateY(-1deg); box-shadow: 0 7px 18px rgba(0,0,0,0.5); border-left-color: var(--accent-blue-light); }
         .outdoors-links a { font-weight: 600; font-size: 1.1rem;}
         .outdoors-links p { margin-top: 5px; margin-bottom: 0; color: var(--text-secondary); font-size: 0.9rem; }
 
-        /* --- Contest Page Styles --- */
-        .contest-info { text-align: center; background-color: var(--card-bg); padding: 30px; border-radius: 10px; border: 1px dashed var(--border-color); }
+        /* Contest Page */
+        .contest-info {
+            text-align: center; background-color: rgba(44, 44, 44, 0.9); padding: 35px; border-radius: 10px;
+            border: 1px dashed var(--border-color); animation: contentFadeInPerspective 0.7s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
         .contest-info p { font-size: 1.3rem; color: var(--accent-blue-light); font-weight: 600; margin: 0; }
         .contest-info span { display: block; font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; }
 
+        /* Description Page - Specific container styling (optional, can use base styles) */
+        #page-description .description-content {
+             background-color: rgba(44, 44, 44, 0.85); /* Slightly transparent card */
+             padding: 30px 35px;
+             border-radius: 10px;
+             box-shadow: 0 8px 25px var(--shadow-color);
+             border: 1px solid var(--border-color);
+             margin-top: 10px; /* Space below H1 */
+        }
+         #page-description .description-content h2 {
+             text-align: left; /* Align subheadings left */
+             margin-top: 30px; /* More space above H2s */
+             padding-bottom: 5px; /* Space for border */
+             border-bottom: 1px solid var(--border-color); /* Underline H2s */
+         }
+         #page-description .description-content h3 {
+             margin-top: 20px;
+             color: var(--accent-blue-light); /* Make H3 stand out a bit more */
+             text-align: left;
+         }
+         #page-description .description-content ul,
+         #page-description .description-content ol {
+             margin-left: 5px; /* Align lists slightly more left */
+         }
+
+
         /* --- Responsive adjustments --- */
-        @media (max-width: 600px) {
-             .navbar { justify-content: flex-start; padding: 0 10px; }
-             .nav-links { gap: 5px; width: 100%; overflow-x: auto; /* Allow scrolling if buttons overflow */ }
-             .nav-button { padding: 8px 10px; font-size: 0.8rem; flex-shrink: 0; /* Prevent buttons shrinking */ }
-             .page-container { padding: 20px 10px; }
+        @media (max-width: 768px) {
+             .navbar { padding: 0 15px; }
+             .navbar-logo img { height: 35px; }
+             .navbar-product-name { font-size: 1rem; }
+             .nav-links { gap: 5px; /* Further reduce gap */ overflow-x: auto; padding: 0 5px; flex-grow: 1; justify-content: center; margin: 0 5px; /* Add margin to prevent touching logo/name */ }
+             .nav-links button { padding: 0 8px; /* Slightly less padding */ flex-shrink: 0; font-size: 0.95rem;}
+             .nav-links button::after { bottom: 5px; height: 2px; }
+             .page-container { padding: 30px 15px; }
              h1 { font-size: 1.8rem; }
              h2 { font-size: 1.4rem; }
-             .leaderboard-entry { padding: 10px 15px; gap: 15px; flex-direction: column; align-items: flex-start;}
+             h3 { font-size: 1.2rem; }
+             .leaderboard-entry { padding: 12px 15px; gap: 15px; flex-direction: column; align-items: flex-start;}
              .entry-image { align-self: center; margin-bottom: 10px;}
              .entry-details { width: 100%; }
              .entry-details .timestamp { align-self: flex-start; }
+             .leaderboard-entry:hover { transform: translateY(-3px) scale(1.01); border-color: var(--border-color); }
+             .outdoors-links li:hover { transform: translateX(5px) scale(1.01) rotateY(0); }
+             .main-content img:hover { transform: scale(1.05); }
+             #page-description .description-content { padding: 20px 25px; }
+        }
+        @media (max-width: 520px) {
+            .navbar-product-name { display: none; }
+            .navbar { justify-content: space-between; }
+            .nav-links { justify-content: flex-end; gap: 5px; margin: 0;}
+            .nav-links button { font-size: 0.9rem; padding: 0 8px; }
+            .leaderboard-container { padding: 20px; }
+            .outdoors-links li { padding: 15px; }
+            .contest-info { padding: 25px; }
+            #page-description .description-content { padding: 15px 20px; }
+            h1 { font-size: 1.6rem; }
+            h2 { font-size: 1.3rem; }
+            h3 { font-size: 1.1rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
+    <!-- Navigation Bar - Updated Structure -->
     <nav class="navbar">
+        <div class="navbar-logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Touch Grass ++ Logo">
+        </div>
         <div class="nav-links">
-            <!-- Use data-target to link buttons to page content IDs -->
-            <button class="nav-button active" data-target="#page-home">Home</button>
-            <button class="nav-button" data-target="#page-leaderboard">Leaderboard</button>
-            <button class="nav-button" data-target="#page-outdoors">Get Outside</button>
-            <button class="nav-button" data-target="#page-contest">Contest</button>
+            <button class="active" data-target="#page-home">Home</button>
+            <button data-target="#page-leaderboard">Leaderboard</button>
+            <button data-target="#page-description">Description</button> <!-- Added Description Button -->
+            <button data-target="#page-outdoors">Get Outside</button>
+            <button data-target="#page-contest">Contest</button>
+        </div>
+        <div class="navbar-product-name">
+            Touch Grass ++
         </div>
     </nav>
 
+    <!-- Page Content Container -->
     <div class="page-container">
 
+        <!-- Home Page Content -->
         <div id="page-home" class="page-content active">
-            <div class="main-content">
+            <!-- ... existing home content ... -->
+             <div class="main-content">
                 <h1>Welcome to the Push-Up Challenge!</h1>
                 <img src="{{ url_for('static', filename='images/workout_motivation.jpg') }}" alt="Outdoor workout motivation">
                 <h2>Track Your Progress & Get Outdoors</h2>
@@ -160,7 +317,9 @@
             </div>
         </div>
 
+        <!-- Leaderboard Page Content -->
         <div id="page-leaderboard" class="page-content">
+             <!-- ... existing leaderboard content ... -->
             <div class="leaderboard-container">
                 <h1>🏆 Push-Up Leaderboard 🏆</h1>
                 <p style="text-align: center; color: var(--text-secondary); margin-bottom: 25px;">Top scores submitted - outdoor workouts get a 2x bonus!</p>
@@ -168,7 +327,8 @@
                 {% if leaderboard %}
                     <ul class="leaderboard-list">
                         {% for entry in leaderboard %}
-                            <li class="leaderboard-entry {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                            <li class="leaderboard-entry {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}"
+                                style="animation-delay: {{ loop.index0 * 0.1 }}s;">
                                 <div class="entry-rank">{{ loop.index }}</div>
                                 <div class="entry-image">
                                     {% if entry.image_filename %}
@@ -200,7 +360,162 @@
             </div>
         </div>
 
+        <!-- Description Page Content (NEW) -->
+        <div id="page-description" class="page-content">
+            <h1>Pushup Counter Project</h1>
+            <div class="description-content"> <!-- Wrapper for styling -->
+                <h2>Overview</h2>
+                <p>
+                    This project is a simple, yet effective system that tracks the number of pushups you complete using an <strong>HCSR04 Ultrasonic Sensor</strong> and displays the count on a <strong>1602A LCD Screen</strong>. It is designed to motivate users to get outdoors and stay fit while keeping track of their progress. The system counts the pushups in real time, and there's also an online leaderboard to compare your achievements with others!
+                </p>
+
+                <h3>Project Motivation</h3>
+                <p>
+                    The motivation behind this project is to make physical activity, specifically pushups, more interactive and engaging. By combining hardware components with a digital leaderboard, this project aims to:
+                </p>
+                <ul>
+                    <li><strong>Encourage fitness</strong>: Pushups are a simple and effective bodyweight exercise.</li>
+                    <li><strong>Gamify the workout</strong>: Users can track their pushup count and see how they stack up against others.</li>
+                    <li><strong>Get outside</strong>: Engage in physical activity outdoors and enjoy the benefits of fresh air and sunlight.</li>
+                </ul>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Pushup Count Tracking</strong>: Using an <strong>HCSR04 Ultrasonic Sensor</strong>, the system tracks the movement of your chest to count each pushup.</li>
+                    <li><strong>1602A LCD Display</strong>: Shows real-time pushup count and other helpful information like time, rank, and motivational messages.</li>
+                    <li><strong>Leaderboard</strong>: Track your progress by connecting your device to a web-based leaderboard where you can see how many pushups you've done compared to others.</li>
+                    <li><strong>Motivational Prompts</strong>: The LCD screen displays motivational messages to keep you going as you perform pushups.</li>
+                </ul>
+
+                <hr>
+
+                <h2>Hardware Required</h2>
+                <ul>
+                    <li><strong>Arduino</strong> (or any compatible microcontroller)</li>
+                    <li><strong>HCSR04 Ultrasonic Sensor</strong>: Used to measure the distance between the sensor and your chest to count each pushup.</li>
+                    <li><strong>1602A LCD Screen</strong>: Displays the pushup count, leaderboard info, and motivational messages.</li>
+                    <li><strong>Jumper Wires</strong>: For connecting all components together.</li>
+                    <li><strong>Breadboard</strong> (optional for prototyping)</li>
+                    <li><strong>Power Source</strong>: Typically a 9V battery or a USB power supply for the Arduino.</li>
+                </ul>
+
+                <hr>
+
+                <h2>Software</h2>
+                <h3>Dependencies</h3>
+                <ul>
+                    <li><strong>Arduino IDE</strong>: For writing and uploading the code to the Arduino.</li>
+                    <li><strong>Libraries</strong>:
+                        <ul>
+                            <li><code>LiquidCrystal</code> for controlling the LCD.</li>
+                            <li><code>Ultrasonic</code> for reading values from the HCSR04 sensor.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>Code Structure</h3>
+                <ol>
+                    <li><strong>Pushup Counting Algorithm</strong>: The sensor detects when your chest moves up and down (during a pushup) based on distance measurements.</li>
+                    <li><strong>LCD Display</strong>: The 1602A LCD is updated to show:
+                        <ul>
+                            <li>Real-time pushup count</li>
+                            <li>Rank or position on the leaderboard</li>
+                            <li>Encouraging messages like "Great job!" or "Keep going!"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Leaderboard</strong>: The project integrates with a web-based leaderboard that tracks the most pushups performed and allows users to compete.</li>
+                </ol>
+
+                <hr>
+
+                <h2>Setup and Installation</h2>
+                <ol>
+                    <li><strong>Wiring the Components</strong>:
+                        <ul>
+                            <li>Connect the <strong>HCSR04 Ultrasonic Sensor</strong> to your Arduino.
+                                <ul>
+                                    <li><code>VCC</code> to 5V</li>
+                                    <li><code>GND</code> to Ground</li>
+                                    <li><code>Trig</code> to Arduino Pin 9</li>
+                                    <li><code>Echo</code> to Arduino Pin 10</li>
+                                </ul>
+                            </li>
+                            <li>Connect the <strong>1602A LCD</strong> to your Arduino.
+                                <ul>
+                                    <li><code>VCC</code> to 5V</li>
+                                    <li><code>GND</code> to Ground</li>
+                                    <li><code>SDA</code> to A4 (on most Arduino models)</li>
+                                    <li><code>SCL</code> to A5 (on most Arduino models)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>Upload the Code</strong>:
+                        <ul>
+                            <li>Open the Arduino IDE and write the code using the <code>LiquidCrystal</code> and <code>Ultrasonic</code> libraries.</li>
+                            <li>Upload the code to your Arduino via USB.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Run the Program</strong>:
+                        <ul>
+                            <li>Once the code is uploaded, the LCD will display the number of pushups you have completed.</li>
+                            <li>Pushup counting is triggered when the sensor detects your chest moving closer and farther from the sensor.</li>
+                            <li>The leaderboard will update in real-time, allowing you to track your rank against others.</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <hr>
+
+                <h2>Web Leaderboard Integration</h2>
+                <p>
+                    The system integrates with a web-based leaderboard, allowing users to see how they compare with others based on their pushup counts. To access the leaderboard, visit <!-- Add link here if available --> this site's Leaderboard page.
+                </p>
+                <p>The leaderboard features:</p>
+                <ul>
+                    <li><strong>Real-time Pushup Counts</strong>: Display of top pushup performers.</li>
+                    <li><strong>User Profiles</strong>: Show your name, total pushups, and rank.</li>
+                    <li><strong>Motivational Badges</strong>: Earn badges for reaching milestones like 100 pushups, 500 pushups, etc.</li>
+                </ul>
+                <p>
+                    To integrate with the website, you can send your pushup data to a server using HTTP requests or via Bluetooth if the system has wireless capability.
+                </p>
+
+                <hr>
+
+                <h2>Future Improvements</h2>
+                <ul>
+                    <li><strong>Mobile App Integration</strong>: Create an app that connects with the system to view your progress on the go.</li>
+                    <li><strong>Workout Reminders</strong>: Send reminders to help users stay consistent with their pushup goals.</li>
+                    <li><strong>Fitness Challenges</strong>: Add challenges like daily pushup goals or competitions with friends.</li>
+                </ul>
+
+                <hr>
+
+                <h2>Contribution</h2>
+                <p>
+                    If you’d like to contribute to the project, feel free to fork the repository, open pull requests, or submit issues for bugs and improvements. Your contributions are always welcome!
+                </p>
+
+                <hr>
+
+                <h2>License</h2>
+                <p>
+                    This project is licensed under the MIT License. <!-- Add link to LICENSE file if you have one -->
+                </p>
+
+                <hr>
+
+                <h2>Acknowledgements</h2>
+                <p>
+                    Thanks to all the open-source communities for providing resources and libraries that helped build this project.
+                </p>
+            </div> <!-- End description-content -->
+        </div>
+
+        <!-- Outdoors Page Content -->
         <div id="page-outdoors" class="page-content">
+             <!-- ... existing outdoors content ... -->
              <div class="outdoors-links">
                 <h1>Find Ways to Get Outside!</h1>
                 <p>Exercising outdoors has great benefits. Here are some resources to help you find places and activities:</p>
@@ -214,7 +529,9 @@
             </div>
         </div>
 
+        <!-- Contest Page Content -->
         <div id="page-contest" class="page-content">
+            <!-- ... existing contest content ... -->
             <div class="contest-info">
                 <h1>Monthly Push-Up Contest</h1>
                 <p>Coming Soon!</p>
@@ -223,20 +540,23 @@
             </div>
         </div>
 
-    </div> 
+    </div> <!-- End Page Container -->
 
+    <!-- JavaScript for Navigation -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const navButtons = document.querySelectorAll('.nav-button');
+            const navButtons = document.querySelectorAll('.nav-links button'); // This selector still works
             const pageContents = document.querySelectorAll('.page-content');
 
             navButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    const targetId = button.dataset.target; // Get target ID from data-target attribute (e.g., '#page-home')
+                    const targetId = button.dataset.target;
 
+                    // Deactivate all buttons and pages
                     navButtons.forEach(btn => btn.classList.remove('active'));
                     pageContents.forEach(page => page.classList.remove('active'));
 
+                    // Activate the clicked button and the target page
                     button.classList.add('active');
                     const targetPage = document.querySelector(targetId);
                     if (targetPage) {
