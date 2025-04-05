@@ -14,21 +14,17 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 os.makedirs('static', exist_ok=True)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# REMOVE THIS --------------------------------------------------------------------------------------------
-GEMINI_API_KEY = "AIzaSyChpcJ-YCKgKPA9H7TutBbXVppUhXBKlgA"
-# -------------------------------------------------------------------------------------------------------
+GEMINI_API_KEY = "Your-key-here"
 try:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash') # Using 1.5 flash as 2.0 is not generally available
+    model = genai.GenerativeModel('gemini-1.5-flash') 
 except Exception as e:
     print(f"Error configuring Gemini: {e}")
     model = None # Set model to None if configuration fails
 
-# --- Leaderboard Data Store (In-Memory) ---
 leaderboard_entries = []
-MAX_LEADERBOARD_SIZE = 10 # Show top 10 entries
+MAX_LEADERBOARD_SIZE = 10 
 
-# --- Gemini Image Analysis Function ---
 def analyze_image_for_grass(image_path):
     if not model:
         return "Gemini model not available"
@@ -49,43 +45,38 @@ def analyze_image_for_grass(image_path):
         'No' if no such grass is present, or
         'Uncertain' if you can't determine or the image is unclear."""
 
-        # Generate content
+        # content part - ali
         response = model.generate_content([prompt, uploaded_file])
 
-        # Clean up the uploaded file on Gemini service (optional but good practice)
         try:
             genai.delete_file(uploaded_file.name)
             print(f"Deleted uploaded file: {uploaded_file.name}")
         except Exception as delete_err:
             print(f"Warning: Could not delete uploaded file {uploaded_file.name}: {delete_err}")
 
-        # Check response format
         if response and response.text:
              analysis_result = response.text.strip()
              print(f"Gemini analysis result: {analysis_result}")
-             # Validate response is one of the expected values
              if analysis_result in ['Yes', 'No', 'Uncertain']:
                  return analysis_result
              else:
                  print(f"Warning: Unexpected response from Gemini: {analysis_result}")
-                 # Fallback to Uncertain if response is not as expected
                  return "Uncertain"
         else:
             print("Warning: Received empty or invalid response from Gemini.")
             return "Analysis Failed"
 
-    except Exception as e:
+    except Exception as e: #this shouldnt happen?
         print(f"Error analyzing image with Gemini: {str(e)}")
-        # Attempt to delete the file even if analysis failed
         try:
             if 'uploaded_file' in locals() and uploaded_file:
                 genai.delete_file(uploaded_file.name)
                 print(f"Deleted uploaded file after error: {uploaded_file.name}")
         except Exception as delete_err:
             print(f"Warning: Could not delete uploaded file {uploaded_file.name} after error: {delete_err}")
-        return f"Analysis error" # Keep error message concise for display
+        return f"Analysis error"
 
-# --- Data Receiving Endpoint ---
+#this one receives: username:username , arduino_data:num, image_data:the image
 @app.route('/receive', methods=['POST'])
 def receive():
     global leaderboard_entries
@@ -102,18 +93,15 @@ def receive():
         print(username)
         print(data)
 
-        # --- Process Arduino Data (Push-up Count) ---
         try:
-            # Assuming arduino_data is just the count
             pushup_count = int(arduino_raw_data)
         except ValueError:
             print(f"Warning: Could not parse arduino_data '{arduino_raw_data}' as integer. Using 0.")
             pushup_count = 0
 
-        # --- Process Image ---
         image_path = None
         image_filename = None
-        grass_result = "No Image" # Default if no image provided
+        grass_result = "No Image" 
         bonus_active = False
 
         if image_data_b64:
@@ -127,47 +115,39 @@ def receive():
                     f.write(base64.b64decode(image_data_b64))
                 print(f"Image saved to: {image_path}")
 
-                # Analyze the image for grass
                 grass_result = analyze_image_for_grass(image_path)
                 if grass_result == 'Yes':
                     bonus_active = True
             except base64.binascii.Error as b64_err:
                 print(f"Error decoding base64 image data: {b64_err}")
-                image_path = None # Invalidate path if saving failed
+                image_path = None #
                 image_filename = None
                 grass_result = "Image Error"
             except Exception as img_err:
                 print(f"Error processing image: {img_err}")
-                # Keep image_path for potential debugging, but clear filename for display
-                # image_path = None
                 image_filename = None
                 grass_result = "Image Error"
         else:
              print("No image data received in payload.")
 
 
-        # --- Calculate Score ---
         score = pushup_count * 2 if bonus_active else pushup_count
 
-        # --- Create Leaderboard Entry ---
         entry_timestamp = datetime.now()
         new_entry = {
-            'id': entry_timestamp.strftime("%Y%m%d%H%M%S%f"), # Unique ID based on time
+            'id': entry_timestamp.strftime("%Y%m%d%H%M%S%f"), 
             'name': username,
             'raw_count': pushup_count,
             'score': score,
             'bonus': bonus_active,
             'username':username,
             'grass_analysis': grass_result,
-            'image_filename': image_filename, # Store only filename for url_for
+            'image_filename': image_filename,
             'timestamp': entry_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        # --- Update Leaderboard ---
         leaderboard_entries.append(new_entry)
-        # Sort by score (descending), then by timestamp (ascending for tie-breaking)
         leaderboard_entries.sort(key=operator.itemgetter('score', 'timestamp'), reverse=True)
-        # Keep only top entries
         leaderboard_entries = leaderboard_entries[:MAX_LEADERBOARD_SIZE]
 
         print("-" * 20)
@@ -181,25 +161,23 @@ def receive():
         return jsonify({
             "status": "success",
             "message": "Data received and processed",
-            "entry_details": new_entry # Send back details of the processed entry
+            "entry_details": new_entry 
         }), 200
 
     except Exception as e:
         print(f"Error in /receive endpoint: {str(e)}")
         import traceback
-        traceback.print_exc() # Print full traceback for debugging
+        traceback.print_exc() 
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# --- Main Page / Leaderboard Display ---
+
 @app.route('/', methods=['GET'])
 def index():
 
-    # Pass the current leaderboard data to the template
     return render_template_string(html_template, leaderboard=leaderboard_entries)
 
 
 if __name__ == '__main__':
-    # Make sure to run on host='0.0.0.0' to be accessible on your network
-    # Use a port other than 80 if you don't have root/admin privileges or port 80 is busy
-    app.run(host='0.0.0.0', port=5000, debug=True) # Using port 5000 and enabling debug mode
+    # this shouldnt be overloaded
+    app.run(host='0.0.0.0', port=5000, debug=True)
