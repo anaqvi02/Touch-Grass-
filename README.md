@@ -1,4 +1,4 @@
-![IMG_2187](https://github.com/user-attachments/assets/1f1759c6-3d28-4f3b-b02e-fdc2ab5a8715)# Pushup Counter with HCSR04 Sensor and 1602A LCD Screen
+# Pushup Counter with HCSR04 Sensor and 1602A LCD Screen
 
 ## Overview
 
